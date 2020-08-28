@@ -1,0 +1,25 @@
+{
+    "id": "CD4C38B7",
+    "path": "D:/R/projects/intercropping.pe/R/doinrtrocrop.R",
+    "project_path": "R/doinrtrocrop.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1598590312567.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled1",
+        "cursorPosition": "16,47",
+        "scrollLine": "0"
+    },
+    "folds": "24|1|99|0|\n115|1|171|0|\n175|1|447|0|\n463|1|470|0|\n",
+    "lastKnownWriteTime": 1598634727,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1598634727654,
+    "read_only": false,
+    "read_only_alternatives": []
+}
