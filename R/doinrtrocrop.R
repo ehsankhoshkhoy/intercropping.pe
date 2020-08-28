@@ -1,239 +1,231 @@
 
+# filepath <- system.file("extdata", "input.csv", package = "intercropping.pe")
+# inputdata <-  utils::read.csv(file=filepath,sep = ",")
+# use_data(inputdata)
 
 
-
-#' is a function for general output of intercropping
-#'
-#' @param beanDatPath is path of input csv file.
-#' this file has six column that are Zbs,Zsb,B,R,SYb,SYs
-#' Zbs is for example ratio of Beans to sunflower Zsb vise versa
-#' B is value Ratio and R is Replication
-#' in that example Yb is Yield of Beans
-#' and Ys is Yield of Sunflower
+#' this function is for intercropping and  calculate total relative value, namely Aggressivity, Actual yield loss, relative yield, RVT and ...
+#' @param InputPath is path of input csv file.
+#' this file has six columns that are Zab,Zba,B,R,SYa,SYb
+#' Zab is  ratio of first species  to second species; Zba vise versa.
+#' B is value Ratio.
+#' R is Replication.
+#' SYa is Yield of first species.
+#' SYb is Yield of second species.
 #' It is noteworthy, mensioned description is for all function of input path
-#'
-#' @param outputAddress is path for general csv file of intercropping
-#' @export
-#' @examples
-#' do.basic.intercrop("d:\\input.csv","d:\\output.csv")
-do.basic.intercrop <- function(beanDatPath,outputAddress)
-{
-  print("please wait .....")
-  gendf <- dogenintercrop(beanDatPath)
-  utils::write.csv(gendf,file=outputAddress,row.names = FALSE)
-  print(gendf)
-  print("finished")
-
-}
-
-
-#' is a function for summary output of intercropping
-#' @param beanDatPath is path of input csv file.
-#' this file has six column that are Zbs,Zsb,B,R,SYb,SYs
-#' Zbs is for example ratio of Beans to sunflower Zsb vise versa
-#' B is value Ratio and R is Replication
-#' in that example Yb is Yield of Beans
-#' and Ys is Yield of Sunflower
-#' It is noteworthy, mensioned description is for all function of input path
-#' @param outputAddress is path of summery output of intercropping
-#' @export
-#' @examples
-#' do.summary.intercrop("d:\\input.csv","d:\\output.csv")
-do.summary.intercrop <- function( beanDatPath,outputAddress)
-{
-  print("please wait .....")
-  gendf <- dogenintercrop(beanDatPath)
-  firstfinalData <- gendf[,c("B","LERb","LERs","LER","Pb","Ps","CRs",
-                             "CRb","Kb","Ks","KbMKs")]
-  firstfinalData <- subset(firstfinalData, firstfinalData$LERb != 1 )
-  firstfinalData <- subset(firstfinalData,firstfinalData$LERs != 1 )
-  firstfinalData <- unique(firstfinalData)
-  print(firstfinalData)
-  utils::write.csv(firstfinalData,outputAddress,row.names = FALSE)
-  print("finished")
-
-}
-
-#' this function is for calculate other indices namely Aggressivity, Actual yield loss, relative yield, RVT and ...
-#' @param beanDatPath path for input csv file
-#' this file has six column that are Zbs,Zsb,B,R,SYb,SYs
-#' Zbs is for example ratio of Beans to sunflower Zsb vise versa
-#' B is value Ratio and R is Replication
-#' in that example Yb is Yield of Beans
-#' and Ys is Yield of Sunflower
-#' It is noteworthy, mensioned description is for all function of input path
-#' @param outputAddress  path and file name for output csv file
-#' @param priceofbean  is number and is price of bean
-#' @param priceofsunflower is number and is price of sunflower
+#' @param OutputPath  is path of output of total relative value
+#' @param inputdf is a dataframe for input data
+#' @param PriceOfFirstSpeies  is a number namely  is price of First Speies
+#' @param PriceOfSecondSpeies is a number namely  is price of Second Speies
 #' @return return a dataframe
 #' @export
 #' @examples
-#' do.otherindices.intercrop("d:\\input.csv","d:\\otherindicesoutput.csv")
-#' do.otherindices.intercrop("d:\\input.csv","d:\\otherindicesoutput.csv",100000,20000)
-do.otherindices.intercrop <- function(beanDatPath,outputAddress,priceofbean=NULL,priceofsunflower=NULL)
+#' do.intercropping.indies(InputPath="d:\\input.csv",OutputPath="d:\\output.csv")
+do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,PriceOfFirstSpeies=NULL,PriceOfSecondSpeies=NULL)
 {
   print("please wait ......")
-  inputdf <- dogenintercrop(beanDatPath)
+  if(is.null(inputdf))
+    inputdf <- return.df(path = InputPath )
+
+  inputdf <- do.intercrop(df = inputdf )
+
+  #print(inputdf)
+  #utils::write.csv(inputdf,"d:\\out.csv",row.names = FALSE)
+
+  maxa <- max(inputdf$Ma)
   maxb <- max(inputdf$Mb)
-  maxs <- max(inputdf$Ms)
-  inputdf <- subset(inputdf,inputdf$Zbs != 100  )
-  inputdf <- subset(inputdf,inputdf$Zbs != 0  )
+  inputdf <- subset(inputdf,inputdf$Zab != 0  ) #new filter
+  inputdf <- subset(inputdf,inputdf$Zba != 0  ) #new filter
 
-  inputdf$Ebs <- maxb * ( inputdf$Zbs /100 )
-  inputdf$Esb <- maxs * ( inputdf$Zsb /100 )
+  inputdf$Eab <- maxa * ( inputdf$Zab /100 )
+  inputdf$Eba <- maxb * ( inputdf$Zba /100 )
 
-  inputdf$YbsDEbs <- inputdf$Mb / ( inputdf$Ebs)
-  inputdf$YsbDEsb <- inputdf$Ms / ( inputdf$Esb)
+  inputdf$YabDEab <- inputdf$Ma / ( inputdf$Eab)
+  inputdf$YbaDEba <- inputdf$Mb / ( inputdf$Eba)
 
-  inputdf$Ab <- inputdf$YbsDEbs - ( inputdf$YsbDEsb)
-  inputdf$As <- inputdf$YsbDEsb - ( inputdf$YbsDEbs)
+  inputdf$Aa <- inputdf$YabDEab - ( inputdf$YbaDEba)
+  inputdf$Ab <- inputdf$YbaDEba - ( inputdf$YabDEab)
 
-  inputdf$YbsDZbs <- inputdf$Mb / ( inputdf$Zbs / 100)
-  inputdf$YsbDZsb <- inputdf$Ms / ( inputdf$Zsb / 100)
+  inputdf$YabDZab <- inputdf$Ma / ( inputdf$Zab / 100)
+  inputdf$YbaDZba <- inputdf$Mb / ( inputdf$Zba / 100)
 
-  inputdf$YbsDZbsDmaxb <- inputdf$YbsDZbs / maxb
-  inputdf$YsbDZsbDmaxs <- inputdf$YsbDZsb / maxs
+  inputdf$YbaDZabDmaxa <- inputdf$YabDZab / maxa
+  inputdf$YbaDZbaDmaxb <- inputdf$YbaDZba / maxb
 
-  inputdf$AYLb <- inputdf$YbsDZbsDmaxb - 1
-  inputdf$AYLs <- inputdf$YsbDZsbDmaxs - 1
-  inputdf$AYL <- inputdf$AYLb + inputdf$AYLs
+  inputdf$AYLa <- inputdf$YbaDZabDmaxa - 1
+  inputdf$AYLb <- inputdf$YbaDZbaDmaxb - 1
+  inputdf$AYL <- inputdf$AYLa + inputdf$AYLb
 
-  inputdf$maxbSMbMmaxsSMs <- (maxb-inputdf$Mb)*(maxs-inputdf$Ms)
-  inputdf$YbsMYsb <- inputdf$Mb * inputdf$Ms
+  inputdf$maxaSMaMmaxbSMb <- (maxa-inputdf$Ma)*(maxb-inputdf$Mb)
+  inputdf$YabMYba <- inputdf$Ma * inputdf$Mb
 
-  inputdf$CI <- inputdf$maxbSMbMmaxsSMs / inputdf$YbsMYsb
-  if(is.null(priceofbean) )
-    priceofbean = 100000
-  if(is.null(priceofsunflower) )
-    priceofsunflower = 20000
+  inputdf$CI <- inputdf$maxaSMaMmaxbSMb / inputdf$YabMYba
+  if(is.null(PriceOfFirstSpeies) )
+    PriceOfFirstSpeies = 100000
+  if(is.null(PriceOfSecondSpeies) )
+    PriceOfSecondSpeies = 20000
 
-  bM1 <- maxb * priceofbean
-  sM2 <- maxs * priceofsunflower
+  aM1 <- maxa * PriceOfFirstSpeies
+  bM2 <- maxb * PriceOfSecondSpeies
 
-  inputdf$MbMPbPMsMPs <- ( inputdf$Mb * priceofbean ) + (inputdf$Ms*priceofsunflower)
-  inputdf$RVTb <- inputdf$MbMPbPMsMPs / bM1
-  inputdf$RVTs <- inputdf$MbMPbPMsMPs / sM2
+  inputdf$MaMPaPMbMPb <- ( inputdf$Ma * PriceOfFirstSpeies ) + (inputdf$Mb*PriceOfSecondSpeies)
+  inputdf$RVTa <- inputdf$MaMPaPMbMPb / aM1
+  inputdf$RVTb <- inputdf$MaMPaPMbMPb / bM2
 
-  inputdf$NE <- (inputdf$Mb+inputdf$Ms) - (inputdf$Ebs +inputdf$Esb)
+  inputdf$NE <- (inputdf$Ma+inputdf$Mb) - (inputdf$Eab +inputdf$Eba)
+  inputdf$MaDmaxa <- inputdf$Ma / maxa
   inputdf$MbDmaxb <- inputdf$Mb / maxb
-  inputdf$MsDmaxs <- inputdf$Ms / maxs
 
-  inputdf$RYb <- inputdf$MbDmaxb / (inputdf$Zbs / 100)
-  inputdf$RYs <- inputdf$MsDmaxs / (inputdf$Zsb / 100)
+  inputdf$DELTARYa <- inputdf$MaDmaxa / (inputdf$Zab / 100)
+  inputdf$DELTARYb <- inputdf$MbDmaxb / (inputdf$Zba / 100)
 
+  inputdf$CEa <- (inputdf$LER - 1) * maxa
   inputdf$CEb <- (inputdf$LER - 1) * maxb
-  inputdf$CEs <- (inputdf$LER - 1) * maxs
-  print(inputdf)
 
-  otherindicesdf <- inputdf[,c("Zbs","Zsb","B","Mb","Ms","Ebs","Esb","YbsDEbs","YsbDEsb","Ab"
-  ,"As","YbsDZbs","YsbDZsb","YbsDZbsDmaxb","YsbDZsbDmaxs","AYLb","AYLs","AYL",
-  "maxbSMbMmaxsSMs","YbsMYsb","CI","MbMPbPMsMPs","RVTb","RVTs","NE",
-  "MbDmaxb","MsDmaxs","RYb","RYs","CEb","CEs")]
+  p1 <- (PriceOfFirstSpeies /(PriceOfFirstSpeies+PriceOfSecondSpeies)) *inputdf$AYLb
+  p2 <- (PriceOfSecondSpeies /(PriceOfFirstSpeies+PriceOfSecondSpeies)) *inputdf$AYLa
+  inputdf$AI <- p1+p2
+  #RCC = Ka M Kb
 
-  otherindicesdf <- unique(otherindicesdf)
+  outdf <- inputdf[,c("Zab","Zba","B","Ma","Mb","LERa","LERb","LER","Pa"
+  ,"Pb","CRa","CRb","Ka",  "Kb","RCC","Aa"  ,"Ab","AYLa","AYLb","AYL"
+  ,"CI","RVTa","RVTb","NE","DELTARYa","DELTARYb","CEa","CEb","AI")]
+  outdf <- unique(outdf)
+  print(outdf)
 
-  utils::write.csv(otherindicesdf,outputAddress,row.names = FALSE)
-  print(unique(inputdf))
-  print("finished.....")
+   utils::write.csv(outdf,OutputPath,row.names = FALSE)
+  print("finished")
   return(inputdf)
 
 }
 
-#' this fucnction is for ANOVA on beans
-#' @param inputDataPath is path for csv input file
-#' this file has six column that are Zbs,Zsb,B,R,SYb,SYs
-#' Zbs is for example ratio of Beans to sunflower Zsb vise versa
-#' B is value Ratio and R is Replication
-#' in that example Yb is Yield of Beans
-#' and Ys is Yield of Sunflower
+#' this fucnction is for ANOVA on two species.
+#' @param InputPath is path of input csv file.
+#' this file has six columns that are Zab,Zba,B,R,SYa,SYb
+#' Zab is  ratio of first species  to second species; Zba vise versa.
+#' B is value Ratio.
+#' R is Replication.
+#' SYa is Yield of first species.
+#' SYb is Yield of second species.
 #' It is noteworthy, mensioned description is for all function of input path
+#' @param inputdf is a dataframe
 #' @export
 #' @examples
-#' do.anova.beans("d:\\input.csv")
-do.anova.beans <- function(inputDataPath)
+#' do.anova(InputPath="d:\\input.csv")
+do.anova<- function(InputPath = NULL,inputdf = NULL)
 {
-  df <- utils::read.csv(file=inputDataPath,sep = ",")
+  if( is.null( inputdf ) )
+  {
+   df <- return.df(InputPath)
+  }
+  else
+    df <- inputdf
+
   df <- adjustcolumns(df)
+
+  maxSYa <- max(df$SYa)
+  maxSYa <- maxSYa + (0.15 * maxSYa)
   maxSYb <- max(df$SYb)
-  ######### ANOVA for beans #################
-  beandata <- subset(df,df$Zsb != 100)
-  beandata <- beandata[,c("B","R","SYb")]
-  beandata <- unique(beandata)
-  beandata$B <- factor(beandata$B)
-  beandata$R <- factor(beandata$R)
-  ANOVA <- stats::aov (SYb ~ B + R, data=beandata)
-  print( summary(ANOVA))
-  out.LSD <- agricolae::LSD.test (ANOVA,"B", p.adj="bonferroni")
-  out.duncan <- agricolae::duncan.test(ANOVA,"B")
+  maxSYb <- maxSYb +  (0.15 * maxSYb)
+  print(maxSYa)
+  print(maxSYb)
+
+  ######### ANOVA 2-way for first species. #################
+
+  firstdata <- subset(df,df$Zab != 0)
+  firstdata <- firstdata[,c("B","R","SYa")]
+
+  firstdata$B <- factor(firstdata$B)
+  firstdata$R <- factor(firstdata$R)
+  ANOVAa <- stats::aov (SYa ~ B + R, data=firstdata)
+  print( summary(ANOVAa))
+  out.LSD.a <- agricolae::LSD.test (ANOVAa,"B", p.adj="bonferroni")
+  print(out.LSD.a)
+  out.duncan.a <- agricolae::duncan.test(ANOVAa,"B")
+  print(out.duncan.a)
+  # # # # # #
+  # draw a plot for output of LSD or duncan test
+  # 2500 is a optional argument dependent to max value of trait#
+  #stargraph
+
+  #endgraph
+
+  ######### ANOVA 2-way for beans #################
+
+  seconddata <- subset(df,df$Zba != 0 )
+  seconddata <- seconddata[,c("B","R","SYb")]
+  seconddata$B <- factor(seconddata$B)
+  seconddata$R <- factor(seconddata$R)
+
+  ANOVAb <- stats::aov (SYb ~ B + R , data=seconddata)
+  print( summary(ANOVAb))
+  out.LSD.b <- agricolae::LSD.test (ANOVAb,"B", p.adj="bonferroni")
+  out.duncan.b <- agricolae::duncan.test(ANOVAb,"B")
 
   # # # # # #
   # draw a plot for output of LSD or duncan test
   # 2500 is a optional argument dependent to max value of trait#
   #stargraph
-  agricolae::bar.group(out.LSD$groups,ylim=c(0,maxSYb),density=4,border="blue")
+  agricolae::bar.group(out.LSD.a$groups,ylim=c(0,maxSYa),density=4,border="blue")
+  agricolae::bar.group(out.LSD.b$groups,ylim=c(0,maxSYb),density=4,border="blue")
   #endgraph
 }
 
-#' this fucnction is for ANOVA on sunflower
-#' @param inputDataPath is path for csv input file
-#' this file has six column that are Zbs,Zsb,B,R,SYb,SYs
-#' Zbs is for example ratio of Beans to sunflower Zsb vise versa
-#' B is value Ratio and R is Replication
-#' in that example Yb is Yield of Beans
-#' and Ys is Yield of Sunflower
-#' It is noteworthy, mensioned description is for all function of input path
-#' @export
-#' @examples
-#' do.anova.sunflower("d:\\input.csv")
-do.anova.sunflower <- function(inputDataPath)
-{
-  df <- utils::read.csv(file=inputDataPath,sep = ",")
-  df <- adjustcolumns(df)
-  maxSYs <- max(df$SYs)
-  ######### ANOVA for beans #################
-  sundata <- subset(df,df$Zbs != 100)
-  sundata <- sundata[,c("B","R","SYs")]
-  sundata <- unique(sundata)
-  sundata$B <- factor(sundata$B)
-  sundata$R <- factor(sundata$R)
-  ANOVA <- stats::aov (SYs ~ B + R, data=sundata)
-  print( summary(ANOVA))
-  out.LSD <- agricolae::LSD.test (ANOVA,"B", p.adj="bonferroni")
-  out.duncan <- agricolae::duncan.test(ANOVA,"B")
 
-  # # # # # #
-  # draw a plot for output of LSD or duncan test
-  # 2500 is a optional argument dependent to max value of trait#
-  #stargraph
-  agricolae::bar.group(out.LSD$groups,ylim=c(0,maxSYs),density=4,border="blue")
-  #endgraph
-}
-
-dogenintercrop <- function( beanDatPath )
+do.intercrop <- function( df )
 {
-  inputdf <- utils::read.csv(beanDatPath,  sep = ',') ### sheet 1
-  inputdf <- adjustcolumns( inputdf )
+  #inputdf <- utils::read.csv(beanDatPath,  sep = ',') ### sheet 1
+  inputdf <- adjustcolumns( df )
   meanList <- c()
-  LERbList <- c()
+  LERaList <- c()
   j <- 1
   for(i in inputdf[,"B"] )
   {
-    if(inputdf$Zsb[j] != 100  )
+    if(inputdf$Zab[j] != 0  ) #remove net
     {
-      beans_meandata <- subset(inputdf,inputdf$B == i)
-      meanList[j] <- mean( beans_meandata[,"SYb"] )
+      first_meandata <- subset(inputdf,inputdf$B == i)
+      meanList[j] <- mean( first_meandata[,"SYa"] )
     }
     else
       meanList[j] <- 0
     j <- j+1
   }
-  inputdf$Mb <- meanList
+  inputdf$Ma <- meanList
 
   maximum <- max(meanList)
   j <- 1
+  for(i in inputdf[,"Ma"] )
+  {
+    if( inputdf$Zab[j] != 0 )
+      LERaList[j] <-  inputdf[j,"Ma"]/maximum
+    else
+      LERaList[j] <- 0
+    j <- j+1
+  }
+
+  inputdf$LERa <- LERaList
+
+  meansList <- c()
+  LERbList <- c()
+  j <- 1
+  for(i in inputdf[,"B"] )
+  {
+    if(inputdf$Zba[j] != 0  )
+    {
+      second_meandata <- subset(inputdf,inputdf$B == i)
+      meansList[j] <- mean( second_meandata[,"SYb"] )
+    }
+    else
+      meansList[j] <- 0
+    j <- j+1
+  }
+  inputdf$Mb <- meansList
+
+  maximum <- max(meansList)
+  j <- 1
   for(i in inputdf[,"Mb"] )
   {
-    if( inputdf$Zsb[j] != 100 )
+    if( inputdf$Zba[j] != 0 )
       LERbList[j] <-  inputdf[j,"Mb"]/maximum
     else
       LERbList[j] <- 0
@@ -241,44 +233,28 @@ dogenintercrop <- function( beanDatPath )
   }
 
   inputdf$LERb <- LERbList
-
-  meansList <- c()
-  LERsList <- c()
-  j <- 1
-  for(i in inputdf[,"B"] )
-  {
-    if(inputdf$Zbs[j] != 100  )
-    {
-      beans_meandata <- subset(inputdf,inputdf$B == i)
-      meansList[j] <- mean( beans_meandata[,"SYs"] )
-    }
-    else
-      meansList[j] <- 0
-    j <- j+1
-  }
-  inputdf$Ms <- meansList
-
-  maximum <- max(meansList)
-  j <- 1
-  for(i in inputdf[,"Ms"] )
-  {
-    if( inputdf$Zbs[j] != 100 )
-      LERsList[j] <-  inputdf[j,"Ms"]/maximum
-    else
-      LERsList[j] <- 0
-    j <- j+1
-  }
-
-  inputdf$LERs <- LERsList
   j <- 1
   inputdf$LER <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$LER[j] <- inputdf[j,"LERs"] + inputdf[j,"LERb"]
+    if(  inputdf[j,"Zab"] != 0 || inputdf[j,"Zba"] != 0 ) ### && <- ||
+      inputdf$LER[j] <- inputdf[j,"LERb"] + inputdf[j,"LERa"]
     else
       inputdf$LER[j] <- 0
+    j <- j+1
+
+  }
+
+  j <- 1
+  inputdf$Pa <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$Pa[j] <- inputdf[j,"LERa"] / inputdf[j,"LER"]
+    else
+      inputdf$Pa[j] <- 0
     j <- j+1
 
   }
@@ -288,7 +264,7 @@ dogenintercrop <- function( beanDatPath )
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
       inputdf$Pb[j] <- inputdf[j,"LERb"] / inputdf[j,"LER"]
     else
       inputdf$Pb[j] <- 0
@@ -297,79 +273,27 @@ dogenintercrop <- function( beanDatPath )
   }
 
   j <- 1
-  inputdf$Ps <- 0
+  inputdf$LERbDLERa <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$Ps[j] <- inputdf[j,"LERs"] / inputdf[j,"LER"]
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$LERbDLERa[j] <- inputdf[j,"LERb"] / inputdf[j,"LERa"]
     else
-      inputdf$Ps[j] <- 0
+      inputdf$LERbDLERa[j] <- 0
     j <- j+1
 
   }
 
   j <- 1
-  inputdf$LERsDLERb <- 0
+  inputdf$ZabDZba <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$LERsDLERb[j] <- inputdf[j,"LERs"] / inputdf[j,"LERb"]
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$ZabDZba[j] <- inputdf[j,"Zab"] / inputdf[j,"Zba"]
     else
-      inputdf$LERsDLERb[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$ZbsDZsb <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$ZbsDZsb[j] <- inputdf[j,"Zbs"] / inputdf[j,"Zsb"]
-    else
-      inputdf$ZbsDZsb[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$CRs <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$CRs[j] <- inputdf[j,"LERsDLERb"] * inputdf[j,"ZbsDZsb"]
-    else
-      inputdf$CRs[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$LERbDLERs <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$LERbDLERs[j] <- inputdf[j,"LERb"] / inputdf[j,"LERs"]
-    else
-      inputdf$LERbDLERs[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$ZsbDZbs <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$ZsbDZbs[j] <- inputdf[j,"Zsb"] / inputdf[j,"Zbs"]
-    else
-      inputdf$ZsbDZbs[j] <- 0
+      inputdf$ZabDZba[j] <- 0
     j <- j+1
 
   }
@@ -379,8 +303,8 @@ dogenintercrop <- function( beanDatPath )
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$CRb[j] <- inputdf[j,"LERbDLERs"] * inputdf[j,"ZsbDZbs"]
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$CRb[j] <- inputdf[j,"LERbDLERa"] * inputdf[j,"ZabDZba"]
     else
       inputdf$CRb[j] <- 0
     j <- j+1
@@ -388,27 +312,107 @@ dogenintercrop <- function( beanDatPath )
   }
 
   j <- 1
-  inputdf$YabMZsb <- 0
+  inputdf$LERaDLERb <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$YabMZsb[j] <- inputdf[j,"Mb"] * ( inputdf[j,"Zsb"]/100 )
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$LERaDLERb[j] <- inputdf[j,"LERa"] / inputdf[j,"LERb"]
     else
-      inputdf$YabMZsb[j] <- 0
+      inputdf$LERaDLERb[j] <- 0
     j <- j+1
 
   }
-  Yaa <- max(inputdf$Mb) #max(Mb)
+
   j <- 1
-  inputdf$YaaSYabMZbs <- 0
+  inputdf$ZbaDZab <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$YaaSYabMZbs[j] <- ( Yaa - inputdf[j,"Mb"] ) * (inputdf[j,"Zbs"]/100)
+    if(  inputdf[j,"Zab"] != 0 &&  inputdf[j,"Zba"] != 0 )
+      inputdf$ZbaDZab[j] <- inputdf[j,"Zba"] / inputdf[j,"Zab"]
     else
-      inputdf$YaaSYabMZbs[j] <- 0
+      inputdf$ZbaDZab[j] <- 0
+    j <- j+1
+
+  }
+
+  j <- 1
+  inputdf$CRa <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$CRa[j] <- inputdf[j,"LERaDLERb"] * inputdf[j,"ZbaDZab"]
+    else
+      inputdf$CRa[j] <- 0
+    j <- j+1
+
+  }
+
+  j <- 1
+  inputdf$YabMZba <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$YabMZba[j] <- inputdf[j,"Ma"] * ( inputdf[j,"Zba"]/100 )
+    else
+      inputdf$YabMZba[j] <- 0
+    j <- j+1
+
+  }
+  Yaa <- max(inputdf$Ma) #max(Ma)
+  j <- 1
+  inputdf$YaaSYabMZab <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$YaaSYabMZab[j] <- ( Yaa - inputdf[j,"Ma"] ) * (inputdf[j,"Zab"]/100)
+    else
+      inputdf$YaaSYabMZab[j] <- 0
+    j <- j+1
+
+  }
+
+  j <- 1
+  inputdf$Ka <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0  && inputdf[j,"Zba"] != 0 )
+      inputdf$Ka[j] <- ( inputdf[j,"YabMZba"] ) / (inputdf[j,"YaaSYabMZab"])
+    else
+      inputdf$Ka[j] <- 0
+    j <- j+1
+
+  }
+
+  ### Sun
+
+  j <- 1
+  inputdf$YbaMZab <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$YbaMZab[j] <- inputdf[j,"Mb"] * ( inputdf[j,"Zab"]/100 )
+    else
+      inputdf$YbaMZab[j] <- 0
+    j <- j+1
+
+  }
+  Ybb <- max(inputdf$Mb) #max(Mb)
+  j <- 1
+  inputdf$YbbSYbaMZba <- 0
+  for(i in inputdf[,"B"])
+
+  {
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$YbbSYbaMZba[j] <- ( Ybb - inputdf[j,"Mb"] ) * (inputdf[j,"Zba"]/100)
+    else
+      inputdf$YbbSYbaMZba[j] <- 0
     j <- j+1
 
   }
@@ -418,64 +422,23 @@ dogenintercrop <- function( beanDatPath )
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$Kb[j] <- ( inputdf[j,"YabMZsb"] ) / (inputdf[j,"YaaSYabMZbs"])
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$Kb[j] <- ( inputdf[j,"YbaMZab"] ) / (inputdf[j,"YbbSYbaMZba"])
     else
       inputdf$Kb[j] <- 0
     j <- j+1
 
   }
 
-  ### Sun
-
   j <- 1
-  inputdf$YbaMZbs <- 0
+  inputdf$RCC <- 0
   for(i in inputdf[,"B"])
 
   {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$YbaMZbs[j] <- inputdf[j,"Ms"] * ( inputdf[j,"Zbs"]/100 )
+    if(  inputdf[j,"Zab"] != 0 && inputdf[j,"Zba"] != 0 )
+      inputdf$RCC[j] <- ( inputdf[j,"Ka"] ) * (inputdf[j,"Kb"])
     else
-      inputdf$YbaMZbs[j] <- 0
-    j <- j+1
-
-  }
-  Ybb <- max(inputdf$Ms) #max(Ms)
-  j <- 1
-  inputdf$YbbSYbaMZsb <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$YbbSYbaMZsb[j] <- ( Ybb - inputdf[j,"Ms"] ) * (inputdf[j,"Zsb"]/100)
-    else
-      inputdf$YbbSYbaMZsb[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$Ks <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$Ks[j] <- ( inputdf[j,"YbaMZbs"] ) / (inputdf[j,"YbbSYbaMZsb"])
-    else
-      inputdf$Ks[j] <- 0
-    j <- j+1
-
-  }
-
-  j <- 1
-  inputdf$KbMKs <- 0
-  for(i in inputdf[,"B"])
-
-  {
-    if(  inputdf[j,"Zbs"] != 100  &&  inputdf[j,"Zbs"] != 0 )
-      inputdf$KbMKs[j] <- ( inputdf[j,"Kb"] ) * (inputdf[j,"Ks"])
-    else
-      inputdf$KbMKs[j] <- 0
+      inputdf$RCC[j] <- 0
     j <- j+1
 
   }
@@ -485,15 +448,29 @@ dogenintercrop <- function( beanDatPath )
 } # end of function
 
 
-adjustcolumns <- function( df )
+return.df <- function(path = NULL)
 {
-  names(df)[1] <- "Zbs"
-  names(df)[2] <- "Zsb"
-  names(df)[4] <- "R"
-  names(df)[5] <- "SYb"
-  names(df)[6] <- "SYs"
+  if( is.null(path))
+  {
+    filepath <- system.file("extdata", "input.csv", package = "intercropping.pe")
+    df <-  utils::read.csv(file=filepath,sep = ",")
+  }
+  else
+    df <- utils::read.csv(file=path,sep = ",")
   return(df)
 }
+
+adjustcolumns <- function( df )
+{
+  names(df)[1] <- "Zab"
+  names(df)[2] <- "Zba"
+  names(df)[4] <- "R"
+  names(df)[5] <- "SYa"
+  names(df)[6] <- "SYb"
+  return(df)
+}
+
+
 
 
 
