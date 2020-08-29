@@ -4,7 +4,7 @@ This package is for intercropping between two species
 For example beans and sunflowers
 That has some function for doing indices.
 The input file for do that is a CSV file which has six columns .
-Zab : Ratio of species one to species. two.
+Zab : Ratio of first species to second species. 
 Zba : vice versa 
 B : ratio
 R : Replication of species
