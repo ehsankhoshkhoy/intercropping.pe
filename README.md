@@ -10,5 +10,5 @@ B : ratio
 R : Replication of species
 SYa : Yield of one's species
 SYb : Yield of two's species
-Please use command flowing for help from that package:
+Please use following  command  for help from that package:
 Help(package ="intercropping.pe")
