@@ -1,5 +1,5 @@
 # intercropping.pe
-this package is for intercropping 
+
 This package is for intercropping between two species
 For example beans and sunflowers
 That has some function for doing indices.
