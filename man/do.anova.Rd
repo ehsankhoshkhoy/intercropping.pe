@@ -4,10 +4,14 @@
 \alias{do.anova}
 \title{this fucnction is for ANOVA on two species.}
 \usage{
-do.anova(InputPath = NULL, inputdf = NULL)
+do.anova(InputPath = NULL, inputdf = NULL, alphavalue = NULL)
 }
 \arguments{
-\item{InputPath}{is path of input csv file.
+\item{InputPath}{is path of input csv file.}
+
+\item{inputdf}{is a dataframe}
+
+\item{alphavalue}{value of alpha for LSD.test and duncan
 this file has six columns that are Zab,Zba,B,R,SYa,SYb
 Zab is  ratio of first species  to second species; Zba vise versa.
 B is value Ratio.
@@ -15,8 +19,6 @@ R is Replication.
 SYa is Yield of first species.
 SYb is Yield of second species.
 It is noteworthy, mensioned description is for all function of input path}
-
-\item{inputdf}{is a dataframe}
 }
 \description{
 this fucnction is for ANOVA on two species.
