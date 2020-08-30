@@ -98,9 +98,9 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
   return(inputdf)
 
 }
-
 #' this fucnction is for ANOVA on two species.
 #' @param InputPath is path of input csv file.
+#' @param alphavalue value of alpha for LSD.test and duncan
 #' this file has six columns that are Zab,Zba,B,R,SYa,SYb
 #' Zab is  ratio of first species  to second species; Zba vise versa.
 #' B is value Ratio.
@@ -112,7 +112,7 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
 #' @export
 #' @examples
 #' do.anova(InputPath="d:\\input.csv")
-do.anova<- function(InputPath = NULL,inputdf = NULL)
+do.anova<- function(InputPath = NULL,inputdf = NULL,alphavalue = NULL)
 {
   if( is.null( inputdf ) )
   {
@@ -120,6 +120,12 @@ do.anova<- function(InputPath = NULL,inputdf = NULL)
   }
   else
     df <- inputdf
+
+  if(is.null(alphavalue))
+  {
+    alphavalue <- .05
+    print(alphavalue)
+  }
 
   df <- adjustcolumns(df)
 
@@ -138,10 +144,13 @@ do.anova<- function(InputPath = NULL,inputdf = NULL)
   firstdata$B <- factor(firstdata$B)
   firstdata$R <- factor(firstdata$R)
   ANOVAa <- stats::aov (SYa ~ B + R, data=firstdata)
+  print(" summary of first species ANOVA:")
   print( summary(ANOVAa))
-  out.LSD.a <- agricolae::LSD.test (ANOVAa,"B", p.adj="bonferroni")
+  out.LSD.a <- agricolae::LSD.test (ANOVAa,"B", p.adj="bonferroni",alpha =alphavalue )
+  print(" output of first species LSD.test:")
   print(out.LSD.a)
-  out.duncan.a <- agricolae::duncan.test(ANOVAa,"B")
+  out.duncan.a <- agricolae::duncan.test(ANOVAa,"B",alpha =alphavalue )
+  print(" output of first species out.duncan:")
   print(out.duncan.a)
   # # # # # #
   # draw a plot for output of LSD or duncan test
@@ -158,19 +167,25 @@ do.anova<- function(InputPath = NULL,inputdf = NULL)
   seconddata$R <- factor(seconddata$R)
 
   ANOVAb <- stats::aov (SYb ~ B + R , data=seconddata)
+  print(" summary of second species ANOVA:")
   print( summary(ANOVAb))
-  out.LSD.b <- agricolae::LSD.test (ANOVAb,"B", p.adj="bonferroni")
-  out.duncan.b <- agricolae::duncan.test(ANOVAb,"B")
-
+  out.LSD.b <- agricolae::LSD.test (ANOVAb,"B", p.adj="bonferroni",alpha =alphavalue )
+  print(" output of second species LSD.test:")
+  print( out.LSD.b)
+  out.duncan.b <- agricolae::duncan.test(ANOVAb,"B",alpha =alphavalue )
+  print(" output of second species out.duncan:")
+  print(out.duncan.b)
   # # # # # #
   # draw a plot for output of LSD or duncan test
   # 2500 is a optional argument dependent to max value of trait#
   #stargraph
   agricolae::bar.group(out.LSD.a$groups,ylim=c(0,maxSYa),density=4,border="blue")
   agricolae::bar.group(out.LSD.b$groups,ylim=c(0,maxSYb),density=4,border="blue")
+
+  agricolae::bar.group(out.duncan.a$groups,ylim=c(0,maxSYa),density=4,border="red")
+  agricolae::bar.group(out.duncan.b$groups,ylim=c(0,maxSYb),density=4,border="red")
   #endgraph
 }
-
 
 do.intercrop <- function( df )
 {
