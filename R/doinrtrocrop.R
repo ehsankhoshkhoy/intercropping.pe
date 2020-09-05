@@ -15,13 +15,17 @@
 #' It is noteworthy, mensioned description is for all function of input path
 #' @param OutputPath  is path of output of total relative value
 #' @param inputdf is a dataframe for input data
-#' @param PriceOfFirstSpeies  is a number namely  is price of First Speies
-#' @param PriceOfSecondSpeies is a number namely  is price of Second Speies
+#' @param PriceOfFirstSpecies  is a number namely, price of First Species
+#' @param PriceOfSecondSpecies is a number namely, price of Second Species
+#' @param NumberOfDayofFirstSpecies  is a number namely, number of day of First Species
+#' @param NumberOfDayofSecondSpecies is a number namely, number of day of Second Species
 #' @return return a dataframe
 #' @export
 #' @examples
 #' do.intercropping.indies(InputPath="d:\\input.csv",OutputPath="d:\\output.csv")
-do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,PriceOfFirstSpeies=NULL,PriceOfSecondSpeies=NULL)
+do.intercropping.indies <- function(InputPath = NULL,
+ OutputPath,inputdf = NULL,PriceOfFirstSpecies=NULL,
+ PriceOfSecondSpecies=NULL,NumberOfDayofFirstSpecies = NULL,NumberOfDayofSecondSpecies=NULL)
 {
   print("please wait ......")
   if(is.null(inputdf))
@@ -29,8 +33,15 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
 
   inputdf <- do.intercrop(df = inputdf )
 
-  #print(inputdf)
-  #utils::write.csv(inputdf,"d:\\out.csv",row.names = FALSE)
+  if(is.null(PriceOfFirstSpecies) )
+    PriceOfFirstSpecies = 100000
+  if(is.null(PriceOfSecondSpecies) )
+    PriceOfSecondSpecies = 2000
+
+  if(is.null(NumberOfDayofFirstSpecies) )
+    NumberOfDayofFirstSpecies = 50
+  if(is.null(NumberOfDayofSecondSpecies) )
+    NumberOfDayofSecondSpecies = 90
 
   maxa <- max(inputdf$Ma)
   maxb <- max(inputdf$Mb)
@@ -60,15 +71,12 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
   inputdf$YabMYba <- inputdf$Ma * inputdf$Mb
 
   inputdf$CI <- inputdf$maxaSMaMmaxbSMb / inputdf$YabMYba
-  if(is.null(PriceOfFirstSpeies) )
-    PriceOfFirstSpeies = 100000
-  if(is.null(PriceOfSecondSpeies) )
-    PriceOfSecondSpeies = 20000
 
-  aM1 <- maxa * PriceOfFirstSpeies
-  bM2 <- maxb * PriceOfSecondSpeies
 
-  inputdf$MaMPaPMbMPb <- ( inputdf$Ma * PriceOfFirstSpeies ) + (inputdf$Mb*PriceOfSecondSpeies)
+  aM1 <- maxa * PriceOfFirstSpecies
+  bM2 <- maxb * PriceOfSecondSpecies
+
+  inputdf$MaMPaPMbMPb <- ( inputdf$Ma * PriceOfFirstSpecies ) + (inputdf$Mb*PriceOfSecondSpecies)
   inputdf$RVTa <- inputdf$MaMPaPMbMPb / aM1
   inputdf$RVTb <- inputdf$MaMPaPMbMPb / bM2
 
@@ -82,14 +90,28 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
   inputdf$CEa <- (inputdf$LER - 1) * maxa
   inputdf$CEb <- (inputdf$LER - 1) * maxb
 
-  p1 <- (PriceOfFirstSpeies /(PriceOfFirstSpeies+PriceOfSecondSpeies)) *inputdf$AYLb
-  p2 <- (PriceOfSecondSpeies /(PriceOfFirstSpeies+PriceOfSecondSpeies)) *inputdf$AYLa
+  p1 <- (PriceOfFirstSpecies /(PriceOfFirstSpecies+PriceOfSecondSpecies)) *inputdf$AYLb
+  p2 <- (PriceOfSecondSpecies /(PriceOfFirstSpecies+PriceOfSecondSpecies)) *inputdf$AYLa
   inputdf$AI <- p1+p2
+
+  inputdf$EYa <- (PriceOfSecondSpecies *inputdf$Mb )/PriceOfFirstSpecies
+  inputdf$EYb <- (PriceOfFirstSpecies *inputdf$Ma )/PriceOfSecondSpecies
+
+  temp1 <- (inputdf$Ma * PriceOfFirstSpecies)+(inputdf$Mb*PriceOfSecondSpecies)
+  temp2 <- (inputdf$LER - 1 )/ inputdf$LER
+
+  inputdf$MAI <- temp1 * temp2
+  inputdf$SPLa <- ((maxa/maxb)*inputdf$Mb)+inputdf$Ma
+  inputdf$SPLb <- ((maxb/maxa)*inputdf$Ma)+inputdf$Mb
+
+  maxNum = max(NumberOfDayofSecondSpecies,NumberOfDayofFirstSpecies)
+  inputdf$ATER <-((inputdf$LERa*NumberOfDayofFirstSpecies)+(inputdf$LERb*NumberOfDayofSecondSpecies))/maxNum
+
   #RCC = Ka M Kb
 
   outdf <- inputdf[,c("Zab","Zba","B","Ma","Mb","LERa","LERb","LER","Pa"
   ,"Pb","CRa","CRb","Ka",  "Kb","RCC","Aa"  ,"Ab","AYLa","AYLb","AYL"
-  ,"CI","RVTa","RVTb","NE","DELTARYa","DELTARYb","CEa","CEb","AI")]
+  ,"CI","RVTa","RVTb","NE","AI","EYa","EYb","MAI","SPLa","SPLb","ATER")]
   outdf <- unique(outdf)
   print(outdf)
 
@@ -98,6 +120,7 @@ do.intercropping.indies <- function(InputPath = NULL,OutputPath,inputdf = NULL,P
   return(inputdf)
 
 }
+
 #' this fucnction is for ANOVA on two species.
 #' @param InputPath is path of input csv file.
 #' @param alphavalue value of alpha for LSD.test and duncan
@@ -186,6 +209,7 @@ do.anova<- function(InputPath = NULL,inputdf = NULL,alphavalue = NULL)
   agricolae::bar.group(out.duncan.b$groups,ylim=c(0,maxSYb),density=4,border="red")
   #endgraph
 }
+
 
 do.intercrop <- function( df )
 {
