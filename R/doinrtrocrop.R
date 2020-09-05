@@ -22,8 +22,8 @@
 #' @return return a dataframe
 #' @export
 #' @examples
-#' do.intercropping.indies(InputPath="d:\\input.csv",OutputPath="d:\\output.csv")
-do.intercropping.indies <- function(InputPath = NULL,
+#' do.intercropping.indices(InputPath="d:\\input.csv",OutputPath="d:\\output.csv")
+do.intercropping.indices <- function(InputPath = NULL,
  OutputPath,inputdf = NULL,PriceOfFirstSpecies=NULL,
  PriceOfSecondSpecies=NULL,NumberOfDayofFirstSpecies = NULL,NumberOfDayofSecondSpecies=NULL)
 {
