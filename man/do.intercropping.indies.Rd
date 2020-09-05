@@ -8,8 +8,10 @@ do.intercropping.indies(
   InputPath = NULL,
   OutputPath,
   inputdf = NULL,
-  PriceOfFirstSpeies = NULL,
-  PriceOfSecondSpeies = NULL
+  PriceOfFirstSpecies = NULL,
+  PriceOfSecondSpecies = NULL,
+  NumberOfDayofFirstSpecies = NULL,
+  NumberOfDayofSecondSpecies = NULL
 )
 }
 \arguments{
@@ -26,9 +28,13 @@ It is noteworthy, mensioned description is for all function of input path}
 
 \item{inputdf}{is a dataframe for input data}
 
-\item{PriceOfFirstSpeies}{is a number namely  is price of First Speies}
+\item{PriceOfFirstSpecies}{is a number namely, price of First Species}
 
-\item{PriceOfSecondSpeies}{is a number namely  is price of Second Speies}
+\item{PriceOfSecondSpecies}{is a number namely, price of Second Species}
+
+\item{NumberOfDayofFirstSpecies}{is a number namely, number of day of First Species}
+
+\item{NumberOfDayofSecondSpecies}{is a number namely, number of day of Second Species}
 }
 \value{
 return a dataframe
