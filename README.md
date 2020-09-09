@@ -10,5 +10,5 @@ B : ratio
 R : Replication of species
 SYa : Yield of one's species
 SYb : Yield of two's species
-In rstudio for help, use following  command :
+,In rstudio for help, use following  command :
 Help(package ="intercropping.pe")
