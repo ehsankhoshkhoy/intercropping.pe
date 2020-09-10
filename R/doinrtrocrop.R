@@ -107,11 +107,14 @@ do.intercropping.indices <- function(InputPath = NULL,
   maxNum = max(NumberOfDayofSecondSpecies,NumberOfDayofFirstSpecies)
   inputdf$ATER <-((inputdf$LERa*NumberOfDayofFirstSpecies)+(inputdf$LERb*NumberOfDayofSecondSpecies))/maxNum
 
+  inputdf$YaE <- ( (inputdf$Ma) -inputdf$Eab)/inputdf$Eab
+  inputdf$YbE <- ( (inputdf$Mb) -inputdf$Eba)/inputdf$Eba
+
   #RCC = Ka M Kb
 
   outdf <- inputdf[,c("Zab","Zba","B","Ma","Mb","LERa","LERb","LER","Pa"
-  ,"Pb","CRa","CRb","Ka",  "Kb","RCC","Aa"  ,"Ab","AYLa","AYLb","AYL"
-  ,"CI","RVTa","RVTb","NE","AI","EYa","EYb","MAI","SPLa","SPLb","ATER")]
+  ,"Pb","CRa","CRb","Ka",  "Kb","RCC","Eab","Eba","Aa"  ,"Ab","AYLa","AYLb","AYL"
+  ,"CI","RVTa","RVTb","NE","AI","EYa","EYb","MAI","SPLa","SPLb","ATER","YaE","YbE")]
   outdf <- unique(outdf)
   print(outdf)
 
